@@ -1,23 +1,29 @@
 package server;
 
 import javafx.util.Pair;
+import server.models.Course;
+import server.models.RegistrationForm;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
+import java.lang.reflect.Array;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Server class that waits for connections from a port and processes client requests.
  */
 public class Server {
 
-    /** Command Line needed to register user to a new class */
+    /**
+     * Command Line needed to register user to a new class
+     */
     public final static String REGISTER_COMMAND = "INSCRIRE";
-    /** Command Line needed to load classes available for a specific semester*/
+    /**
+     * Command Line needed to load classes available for a specific semester
+     */
     public final static String LOAD_COMMAND = "CHARGER";
     private final ServerSocket server;
     private Socket client;
@@ -26,7 +32,8 @@ public class Server {
     private final ArrayList<EventHandler> handlers;
 
     /**
-     * Server class waits for incoming connections from a port and then processes client requests.
+     * Server class constructor that creates a socket & its server attributes
+     *
      * @param port port to listen to.
      * @throws IOException if I/O error while creating socket.
      */
@@ -38,6 +45,7 @@ public class Server {
 
     /**
      * Adds a new eventHandler to server's ArrayList handlers.
+     *
      * @param h eventHandler to be added.
      */
     public void addEventHandler(EventHandler h) {
@@ -71,7 +79,8 @@ public class Server {
 
     /**
      * Waits for client requests & process them
-     * @throws IOException if I/O error when reading input stream.
+     *
+     * @throws IOException            if I/O error when reading input stream.
      * @throws ClassNotFoundException if different object type from input stream
      */
     public void listen() throws IOException, ClassNotFoundException {
@@ -86,6 +95,7 @@ public class Server {
 
     /**
      * Take in a command line and split it into one command and one argument
+     *
      * @param line the command line to be processed
      * @return Pair object for the command & the argument
      */
@@ -98,6 +108,7 @@ public class Server {
 
     /**
      * Cut client connection & close input/output streams.
+     *
      * @throws IOException if I/O error while trying to close streams.
      */
     public void disconnect() throws IOException {
@@ -109,6 +120,7 @@ public class Server {
 
     /**
      * Process the commands "REGISTER_COMMAND" and "LOAD_COMMAND" from the command line
+     *
      * @param cmd command to be executed
      * @param arg argument to be passed with the command
      */
@@ -121,23 +133,51 @@ public class Server {
     }
 
     /**
-     Lire un fichier texte contenant des informations sur les cours et les transofmer en liste d'objets 'Course'.
-     La méthode filtre les cours par la session spécifiée en argument.
-     Ensuite, elle renvoie la liste des cours pour une session au client en utilisant l'objet 'objectOutputStream'.
-     La méthode gère les exceptions si une erreur se produit lors de la lecture du fichier ou de l'écriture de l'objet dans le flux.
-     @param arg la session pour laquelle on veut récupérer la liste des cours
+     * Lire un fichier texte contenant des informations sur les cours et les transofmer en liste d'objets 'Course'.
+     * La méthode filtre les cours par la session spécifiée en argument.
+     * Ensuite, elle renvoie la liste des cours pour une session au client en utilisant l'objet 'objectOutputStream'.
+     * La méthode gère les exceptions si une erreur se produit lors de la lecture du fichier ou de l'écriture de l'objet dans le flux.
+     *
+     * @param session la session pour laquelle on veut récupérer la liste des cours
      */
-    public void handleLoadCourses(String arg) {
-        // TODO: implémenter cette méthode
+    public void handleLoadCourses(String session) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("cours.txt"));
+            List<Course> courseList = new ArrayList<>();
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] addCourse = line.split("/t");
+                Course newCourse = new Course(addCourse[1], addCourse[0], addCourse[2]);
+                courseList.add(newCourse);
+            }
+            reader.close();
+
+            //List<Course> filteredCourses = Course.filterBySemester(courseList, session);
+
+            //objectOutputStream.writeObject(filteredCourses);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
-     Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer dans un fichier texte
-     et renvoyer un message de confirmation au client.
-     La méthode gére les exceptions si une erreur se produit lors de la lecture de l'objet, l'écriture dans un fichier ou dans le flux de sortie.
+     * Receives the registrationForm from the client & uses the information given to add new line to inscription.txt
      */
     public void handleRegistration() {
-        // TODO: implémenter cette méthode
+        try {
+            RegistrationForm registrationForm = (RegistrationForm) objectInputStream.readObject();
+
+            FileWriter writer = new FileWriter("inscription.txt", true);
+            writer.write(registrationForm.toFormat());
+            writer.write(System.lineSeparator());
+            writer.close();
+
+            objectOutputStream.writeObject("Inscription complétée.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
-

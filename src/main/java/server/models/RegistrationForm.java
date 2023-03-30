@@ -59,6 +59,21 @@ public class RegistrationForm implements Serializable {
 
     @Override
     public String toString() {
-        return "InscriptionForm{" + "prenom='" + prenom + '\'' + ", nom='" + nom + '\'' + ", email='" + email + '\'' + ", matricule='" + matricule + '\'' + ", course='" + course + '\'' + '}';
+        return "InscriptionForm{" + "prenom='" + prenom + '\'' + ", nom='" + nom + '\'' + ", email='" + email + '\''
+                + ", matricule='" + matricule + '\'' + ", course='" + course + '\'' + '}';
+    }
+
+    /**
+     * Method that returns a registrationForm in the appropriate format to be written in inscription.txt
+     * @return line of String
+     */
+    public String toFormat() {
+        return "" + course.getSession() + "/t" +
+                course.getCode() + "/t" +
+                matricule + "/t" +
+                prenom + "/t" +
+                nom + "/t" +
+                email;
     }
 }
+
