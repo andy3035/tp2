@@ -1,16 +1,13 @@
 package server;
 
 import javafx.util.Pair;
-import server.models.Course;
-import server.models.RegistrationForm;
+import server.models.*;
 
 import java.io.*;
-import java.lang.reflect.Array;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.net.*;
+import java.util.*;
+
+import static server.models.Course.filterBySession;
 
 /**
  * Server class that waits for connections from a port and processes client requests.
@@ -32,7 +29,7 @@ public class Server {
     private final ArrayList<EventHandler> handlers;
 
     /**
-     * Server class constructor that creates a socket & its server attributes
+     * Server class constructor that creates the Server & creates ServerSocket & its server attributes.
      *
      * @param port port to listen to.
      * @throws IOException if I/O error while creating socket.
@@ -138,7 +135,7 @@ public class Server {
      * Ensuite, elle renvoie la liste des cours pour une session au client en utilisant l'objet 'objectOutputStream'.
      * La méthode gère les exceptions si une erreur se produit lors de la lecture du fichier ou de l'écriture de l'objet dans le flux.
      *
-     * @param session la session pour laquelle on veut récupérer la liste des cours
+     * @param session pour laquelle on veut récupérer la liste des cours
      */
     public void handleLoadCourses(String session) {
         try {
@@ -147,15 +144,18 @@ public class Server {
 
             String line;
             while ((line = reader.readLine()) != null) {
+
+                //Splits the line
                 String[] addCourse = line.split("/t");
                 Course newCourse = new Course(addCourse[1], addCourse[0], addCourse[2]);
                 courseList.add(newCourse);
             }
             reader.close();
 
-            //List<Course> filteredCourses = Course.filterBySemester(courseList, session);
+            //Filters the list of classes for one specific session
+            List<Course> filteredCourses = filterBySession(courseList, session);
 
-            //objectOutputStream.writeObject(filteredCourses);
+            objectOutputStream.writeObject(filteredCourses);
 
         } catch (Exception e) {
             e.printStackTrace();
